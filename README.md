@@ -53,4 +53,4 @@ This keeps the user-facing workflow on `uv` while still using the officially pac
 - Marker offsets in `specs/landmarks.yaml` are conservative starting values and will need tuning in OpenSim.
 - Constraint YAML is data-driven so posture targets can be iterated without changing code.
 - `scripts/05_render_pose.py` produces deterministic PNG/SVG renders from solved OpenSim body transforms and Masoero markers. This avoids depending on the Simbody GUI path, which is unstable under the current Wayland/Xwayland setup.
-- `scripts/06_export_pose_viewer.py` exports a local HTML viewer with the posed Rajagopal meshes and Masoero markers. The generated viewer uses version-pinned `three.js` modules from a CDN, so it needs network access when opened.
+- `scripts/06_export_pose_viewer.py` exports a local HTML viewer with the posed Rajagopal meshes and Masoero markers. The viewer loads vendored `three.js` modules from `vendor/three/`, so it works offline when served from the repo.

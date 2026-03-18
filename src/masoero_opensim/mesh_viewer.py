@@ -261,8 +261,8 @@ def _viewer_html(scene: dict[str, object]) -> str:
   <script type="importmap">
   {{
     "imports": {{
-      "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+      "three": "../vendor/three/build/three.module.js",
+      "three/addons/": "../vendor/three/examples/jsm/"
     }}
   }}
   </script>
