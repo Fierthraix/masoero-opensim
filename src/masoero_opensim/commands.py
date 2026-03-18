@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 from . import config
+from .mesh_viewer import export_pose_viewer
 from .opensim_utils import (
     add_markers,
     coordinate_bounds,
@@ -135,6 +136,19 @@ def render_pose_main(argv: list[str] | None = None) -> int:
     output_path = args.output or (config.RENDERS_DIR / f"{args.pose_file.stem}.png")
     render_pose(args.model, args.pose_file, output_path)
     print(f"Wrote render to {output_path}")
+    return 0
+
+
+def export_viewer_main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Export an orbitable HTML viewer for a solved pose.")
+    parser.add_argument("pose_file", type=Path)
+    parser.add_argument("--model", type=Path, default=config.MARKER_MODEL_PATH)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args(argv)
+
+    output_path = args.output or (config.RENDERS_DIR / f"{args.pose_file.stem}.html")
+    export_pose_viewer(args.model, args.pose_file, output_path)
+    print(f"Wrote viewer to {output_path}")
     return 0
 
 

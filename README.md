@@ -42,6 +42,10 @@ This keeps the user-facing workflow on `uv` while still using the officially pac
 7. Render screenshots:
    - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/05_render_pose.py poses/pose_good.sto`
    - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/05_render_pose.py poses/pose_bad.sto`
+8. Export orbitable mesh viewers:
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/06_export_pose_viewer.py poses/pose_good.sto`
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/06_export_pose_viewer.py poses/pose_bad.sto`
+   - Serve locally if needed: `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project python -m http.server`
 
 ## Notes
 
@@ -49,3 +53,4 @@ This keeps the user-facing workflow on `uv` while still using the officially pac
 - Marker offsets in `specs/landmarks.yaml` are conservative starting values and will need tuning in OpenSim.
 - Constraint YAML is data-driven so posture targets can be iterated without changing code.
 - `scripts/05_render_pose.py` produces deterministic PNG/SVG renders from solved OpenSim body transforms and Masoero markers. This avoids depending on the Simbody GUI path, which is unstable under the current Wayland/Xwayland setup.
+- `scripts/06_export_pose_viewer.py` exports a local HTML viewer with the posed Rajagopal meshes and Masoero markers. The generated viewer uses version-pinned `three.js` modules from a CDN, so it needs network access when opened.
