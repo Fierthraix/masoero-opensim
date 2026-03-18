@@ -1,0 +1,58 @@
+pose_name: pose_bad
+axis_map:
+  anterior_posterior: x
+  vertical: y
+  lateral: z
+plane:
+  reference_markers: [instep_left, instep_right]
+  constrained_markers:
+    - upper_sternum
+    - lower_sternum
+    - rib8_left
+    - rib8_right
+    - iliac_left
+    - iliac_right
+  weight: 3.0
+sternum_alignment:
+  markers: [upper_sternum, lower_sternum]
+  axis: x
+  weight: 2.0
+marker_verticality:
+  markers: [sacrum, l3, t12, c7]
+  axis: x
+  weight: 0.75
+movable_coordinates:
+  - pattern: "^pelvis_(tilt|list|rotation)$"
+    bounds_deg: [-20.0, 25.0]
+    initial_deg: 8.0
+  - pattern: "^pelvis_t[x-z]$"
+    bounds_m: [-0.05, 0.05]
+    initial_m: 0.0
+  - pattern: "^pelvis_ty$"
+    bounds_m: [0.8, 1.2]
+    initial_m: 0.95
+  - pattern: "^(hip|knee|ankle|subtalar|mtp)_.*"
+    bounds_deg: [-20.0, 20.0]
+    initial_deg: 0.0
+  - pattern: "^(lumbar|back|torso|neck|head).*"
+    bounds_deg: [-20.0, 20.0]
+    initial_deg: -4.0
+coordinate_targets:
+  - pattern: "^pelvis_tilt$"
+    target_deg: 12.0
+    weight: 12.0
+  - pattern: "^lumbar_extension$"
+    target_deg: -8.0
+    weight: 8.0
+  - pattern: "^lumbar_bending$"
+    target_deg: 0.0
+    weight: 2.0
+  - pattern: "^lumbar_rotation$"
+    target_deg: 0.0
+    weight: 2.0
+  - pattern: "^knee_angle_[lr]$"
+    target_deg: 2.0
+    weight: 4.0
+  - pattern: "^ankle_angle_[lr]$"
+    target_deg: -2.0
+    weight: 3.0

@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+external/rajagopal2016/Geometry/
+external/rajagopal2016/*.osim
+models/masoero/*.osim
+poses/*.sto
+poses/*.mot
+poses/*.osim
+reports/*.json
+renders/*.png

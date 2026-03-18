@@ -1,0 +1,40 @@
+markers:
+  - name: upper_sternum
+    parent_frame: torso
+    location_m: [0.015, 0.235, 0.0]
+  - name: lower_sternum
+    parent_frame: torso
+    location_m: [0.02, 0.12, 0.0]
+  - name: rib8_left
+    parent_frame: torso
+    location_m: [0.028, 0.1, 0.09]
+  - name: rib8_right
+    parent_frame: torso
+    location_m: [0.028, 0.1, -0.09]
+  - name: iliac_left
+    parent_frame: pelvis
+    location_m: [0.02, 0.07, 0.11]
+  - name: iliac_right
+    parent_frame: pelvis
+    location_m: [0.02, 0.07, -0.11]
+  - name: instep_left
+    parent_frame: calcn_l
+    location_m: [0.17, 0.03, 0.03]
+  - name: instep_right
+    parent_frame: calcn_r
+    location_m: [0.17, 0.03, -0.03]
+  - name: c7
+    parent_frame: torso
+    location_m: [-0.015, 0.31, 0.0]
+  - name: t12
+    parent_frame: torso
+    location_m: [-0.03, 0.085, 0.0]
+  - name: l3
+    parent_frame: pelvis
+    location_m: [-0.045, 0.14, 0.0]
+  - name: sacrum
+    parent_frame: pelvis
+    location_m: [-0.06, 0.06, 0.0]
+  - name: clavicle_mid
+    parent_frame: torso
+    location_m: [0.01, 0.26, 0.0]

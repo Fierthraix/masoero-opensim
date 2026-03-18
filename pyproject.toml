@@ -1,0 +1,21 @@
+[project]
+name = "masoero-opensim"
+version = "0.1.0"
+description = "Static Masoero posture asset generation on top of Rajagopal2016"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=2.1",
+  "pyyaml>=6.0",
+  "scipy>=1.14",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/masoero_opensim"]
