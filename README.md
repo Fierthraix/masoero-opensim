@@ -15,17 +15,28 @@ The repository is set up to be driven entirely from `uv` and YAML specs. The Ope
 - `src/masoero_opensim/`: shared implementation
 - `models/`, `poses/`, `reports/`, `renders/`: generated outputs
 
+## OpenSim Runtime
+
+The official Linux OpenSim Python package is distributed through the `opensim-org` Conda channel. In this repo, the working pattern is:
+
+1. Create a dedicated Conda-compatible environment containing `opensim` and the matching scientific stack.
+2. Run every Python entrypoint through `uv`, pointing at that interpreter:
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/00_verify_opensim.py`
+
+This keeps the user-facing workflow on `uv` while still using the officially packaged OpenSim bindings.
+
 ## Quick Start
 
 1. Put the Rajagopal model at `external/rajagopal2016/Rajagopal2016.osim`.
-2. Run `UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/00_verify_opensim.py`.
-3. Run `UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/01_add_markers.py`.
+2. Provision an OpenSim-capable interpreter at `.opensim-env/bin/python`.
+3. Run `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/00_verify_opensim.py`.
+4. Run `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/01_add_markers.py`.
 4. Solve poses:
-   - `UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/02_solve_pose.py good`
-   - `UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/02_solve_pose.py bad`
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/02_solve_pose.py good`
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/02_solve_pose.py bad`
 5. Export metrics:
-   - `UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/03_export_metrics.py poses/pose_good.sto`
-   - `UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/03_export_metrics.py poses/pose_bad.sto`
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/03_export_metrics.py poses/pose_good.sto`
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/03_export_metrics.py poses/pose_bad.sto`
 
 ## Notes
 

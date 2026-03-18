@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import math
+import os
 import re
 from pathlib import Path
 from typing import Any
 
+from . import config
 from .runtime import UserFacingError, ensure_parent_dir, import_dependency
 
 TRANSLATION_COORDINATE_PATTERNS = (
@@ -144,6 +146,10 @@ def add_markers(model: Any, marker_specs: list[dict[str, Any]]) -> list[tuple[st
 def save_model(model: Any, output_path: Path) -> None:
     ensure_parent_dir(output_path)
     model.printToXML(str(output_path))
+    source_geometry = config.EXTERNAL_DIR / "Geometry"
+    target_geometry = output_path.parent / "Geometry"
+    if source_geometry.exists() and not target_geometry.exists():
+        target_geometry.symlink_to(os.path.relpath(source_geometry, output_path.parent), target_is_directory=True)
 
 
 def set_default_pose(model: Any, pose_values: dict[str, float]) -> None:

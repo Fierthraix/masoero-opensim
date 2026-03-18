@@ -49,10 +49,12 @@ def build_variables(model: Any, constraints: dict[str, Any]) -> list[CoordinateV
     variables: list[CoordinateVariable] = []
     movable_specs = constraints.get("movable_coordinates", [])
     for coord in coordinate_set(model):
-        spec = _first_matching_spec(coord.getName(), movable_specs)
+        name = coord.getName()
+        if name.endswith("_beta"):
+            continue
+        spec = _first_matching_spec(name, movable_specs)
         if spec is None:
             continue
-        name = coord.getName()
         unit = coordinate_units(name)
         if unit == "deg" and "bounds_deg" in spec:
             lower, upper = [float(value) for value in spec["bounds_deg"]]
@@ -149,7 +151,9 @@ def solve_pose(
 
     lower_bounds = [variable.lower for variable in variables]
     upper_bounds = [variable.upper for variable in variables]
-    initial_guess = [base_pose.get(variable.name, variable.initial) for variable in variables]
+    initial_guess = [
+        min(max(base_pose.get(variable.name, variable.initial), variable.lower), variable.upper) for variable in variables
+    ]
 
     result = scipy_optimize.least_squares(
         lambda values: residual_vector(model, state, base_pose, variables, list(values), constraints),

@@ -13,16 +13,16 @@ markers:
     location_m: [0.028, 0.1, -0.09]
   - name: iliac_left
     parent_frame: pelvis
-    location_m: [0.02, 0.07, 0.11]
+    location_m: [-0.086, 0.07, 0.11]
   - name: iliac_right
     parent_frame: pelvis
-    location_m: [0.02, 0.07, -0.11]
+    location_m: [-0.086, 0.07, -0.11]
   - name: instep_left
     parent_frame: calcn_l
-    location_m: [0.17, 0.03, 0.03]
+    location_m: [0.03, 0.03, 0.03]
   - name: instep_right
     parent_frame: calcn_r
-    location_m: [0.17, 0.03, -0.03]
+    location_m: [0.03, 0.03, -0.03]
   - name: c7
     parent_frame: torso
     location_m: [-0.015, 0.31, 0.0]

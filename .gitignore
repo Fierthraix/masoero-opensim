@@ -1,4 +1,5 @@
 .venv/
+.opensim-env/
 __pycache__/
 *.pyc
 .pytest_cache/
@@ -6,8 +7,10 @@ __pycache__/
 external/rajagopal2016/Geometry/
 external/rajagopal2016/*.osim
 models/masoero/*.osim
+models/masoero/Geometry
 poses/*.sto
 poses/*.mot
 poses/*.osim
+poses/Geometry
 reports/*.json
 renders/*.png
