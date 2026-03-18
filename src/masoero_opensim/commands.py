@@ -8,9 +8,9 @@ from .opensim_utils import (
     add_markers,
     coordinate_bounds,
     coordinate_set,
+    internal_to_storage,
     load_model,
     marker_names,
-    read_storage_file,
     save_model,
 )
 from .pose_solver import default_output_paths, solve_pose
@@ -30,7 +30,8 @@ def verify_main(argv: list[str] | None = None) -> int:
     print("Coordinates:")
     for coord in coordinate_set(model):
         lower, upper = coordinate_bounds(coord)
-        print(f"  {coord.getName():<24} default={coord.getDefaultValue():>8.4f} range=[{lower:.3f}, {upper:.3f}]")
+        default_value = internal_to_storage(coord.getName(), float(coord.getDefaultValue()))
+        print(f"  {coord.getName():<24} default={default_value:>8.4f} range=[{lower:.3f}, {upper:.3f}]")
     print("Markers:")
     for name in marker_names(model):
         print(f"  {name}")

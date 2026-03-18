@@ -12,7 +12,6 @@ from .opensim_utils import (
     axis_index,
     coordinate_bounds,
     coordinate_defaults,
-    coordinate_map,
     coordinate_names,
     coordinate_set,
     coordinate_units,
@@ -135,6 +134,7 @@ def solve_pose(
     output_model_path: Path | None,
     initial_pose_path: Path | None = None,
 ) -> dict[str, float]:
+    del pose_name
     scipy_optimize = import_dependency(
         "scipy.optimize",
         "SciPy is required for pose solving. Run `UV_CACHE_DIR=/tmp/uv-cache uv sync` first.",
