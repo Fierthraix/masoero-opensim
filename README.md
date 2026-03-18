@@ -25,6 +25,19 @@ The official Linux OpenSim Python package is distributed through the `opensim-or
 
 This keeps the user-facing workflow on `uv` while still using the officially packaged OpenSim bindings.
 
+## Just Commands
+
+The repo includes a `justfile` for the common workflows:
+
+- `just verify`
+- `just markers`
+- `just solve good`
+- `just metrics good`
+- `just render good`
+- `just viewer good`
+- `just serve`
+- `just all`
+
 ## Quick Start
 
 1. Put the Rajagopal model at `external/rajagopal2016/Rajagopal2016.osim`.
