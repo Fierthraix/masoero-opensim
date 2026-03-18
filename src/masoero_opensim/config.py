@@ -10,6 +10,7 @@ GOOD_CONSTRAINTS_PATH = REPO_ROOT / "specs" / "constraints_good.yaml"
 BAD_CONSTRAINTS_PATH = REPO_ROOT / "specs" / "constraints_bad.yaml"
 POSES_DIR = REPO_ROOT / "poses"
 REPORTS_DIR = REPO_ROOT / "reports"
+RENDERS_DIR = REPO_ROOT / "renders"
 
 
 def constraint_path_for_pose(pose_name: str) -> Path:

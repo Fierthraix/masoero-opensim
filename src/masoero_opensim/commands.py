@@ -14,6 +14,7 @@ from .opensim_utils import (
     save_model,
 )
 from .pose_solver import default_output_paths, solve_pose
+from .rendering import render_pose
 from .reporting import compute_pose_metrics, export_body_transforms, write_json, write_metrics_json
 from .runtime import UserFacingError
 from .specs import read_yaml
@@ -121,6 +122,19 @@ def export_transforms_main(argv: list[str] | None = None) -> int:
     data = export_body_transforms(args.model, args.pose_file)
     write_json(data, output_path)
     print(f"Wrote transforms to {output_path}")
+    return 0
+
+
+def render_pose_main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Render a solved pose to SVG or PNG.")
+    parser.add_argument("pose_file", type=Path)
+    parser.add_argument("--model", type=Path, default=config.MARKER_MODEL_PATH)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args(argv)
+
+    output_path = args.output or (config.RENDERS_DIR / f"{args.pose_file.stem}.png")
+    render_pose(args.model, args.pose_file, output_path)
+    print(f"Wrote render to {output_path}")
     return 0
 
 

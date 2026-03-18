@@ -37,9 +37,15 @@ This keeps the user-facing workflow on `uv` while still using the officially pac
 5. Export metrics:
    - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/03_export_metrics.py poses/pose_good.sto`
    - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/03_export_metrics.py poses/pose_bad.sto`
+6. Export transforms if needed:
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/04_export_transforms_json.py poses/pose_good.sto`
+7. Render screenshots:
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/05_render_pose.py poses/pose_good.sto`
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/05_render_pose.py poses/pose_bad.sto`
 
 ## Notes
 
 - The scripts fail fast with explicit messages when OpenSim is unavailable or the Rajagopal assets are missing.
 - Marker offsets in `specs/landmarks.yaml` are conservative starting values and will need tuning in OpenSim.
 - Constraint YAML is data-driven so posture targets can be iterated without changing code.
+- `scripts/05_render_pose.py` produces deterministic PNG/SVG renders from solved OpenSim body transforms and Masoero markers. This avoids depending on the Simbody GUI path, which is unstable under the current Wayland/Xwayland setup.
