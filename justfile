@@ -33,6 +33,12 @@ render pose:
 viewer pose:
   {{uv_py}} scripts/06_export_pose_viewer.py poses/pose_{{pose}}.sto
 
+editor pose:
+  {{uv_py}} scripts/07_pose_editor.py poses/pose_{{pose}}.sto
+
+apply-patch patch:
+  {{uv_py}} scripts/08_apply_editor_patch.py {{patch}}
+
 serve port="8000":
   {{uv_plain}} -m http.server {{port}}
 

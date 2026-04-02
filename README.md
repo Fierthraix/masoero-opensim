@@ -35,6 +35,7 @@ The repo includes a `justfile` for the common workflows:
 - `just metrics good`
 - `just render good`
 - `just viewer good`
+- `just editor good`
 - `just serve`
 - `just all`
 
@@ -59,6 +60,12 @@ The repo includes a `justfile` for the common workflows:
    - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/06_export_pose_viewer.py poses/pose_good.sto`
    - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/06_export_pose_viewer.py poses/pose_bad.sto`
    - Serve locally if needed: `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project python -m http.server`
+9. Launch the visual editor:
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/07_pose_editor.py poses/pose_good.sto`
+10. Apply an exported patch:
+   - `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/08_apply_editor_patch.py edits/pose_good.patch.json`
+   - Re-render the edited outputs with the generated pose file and marker model:
+     `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project --python .opensim-env/bin/python python scripts/05_render_pose.py poses/pose_good_edited.sto --model models/masoero/pose_good_edited_markers.osim`
 
 ## Notes
 
@@ -67,3 +74,5 @@ The repo includes a `justfile` for the common workflows:
 - Constraint YAML is data-driven so posture targets can be iterated without changing code.
 - `scripts/05_render_pose.py` produces deterministic PNG/SVG renders from solved OpenSim body transforms and Masoero markers. This avoids depending on the Simbody GUI path, which is unstable under the current Wayland/Xwayland setup.
 - `scripts/06_export_pose_viewer.py` exports a local HTML viewer with the posed Rajagopal meshes and Masoero markers. The viewer loads vendored `three.js` modules from `vendor/three/`, so it works offline when served from the repo.
+- `scripts/07_pose_editor.py` starts a lightweight local server for browser-based landmark dragging and pose slider edits. Exported patches are non-destructive JSON files under `edits/`.
+- `scripts/08_apply_editor_patch.py` merges a patch into a new `.sto`, a new landmarks YAML file, and a regenerated marker model `.osim` so existing render commands can be reused with `--model`.

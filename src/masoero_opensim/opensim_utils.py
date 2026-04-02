@@ -128,16 +128,20 @@ def add_markers(model: Any, marker_specs: list[dict[str, Any]]) -> list[tuple[st
     osim = load_opensim()
     body_set = model.getBodySet()
     attached: list[tuple[str, str]] = []
-    existing = set(marker_names(model))
+    existing_markers = {model.getMarkerSet().get(index).getName(): model.getMarkerSet().get(index) for index in range(model.getMarkerSet().getSize())}
     for marker_spec in marker_specs:
         name = marker_spec["name"]
         parent_frame = marker_spec["parent_frame"]
-        if name in existing:
-            continue
         location = marker_spec["location_m"]
         frame = body_set.get(parent_frame)
-        marker = osim.Marker(name, frame, osim.Vec3(*location))
-        model.addMarker(marker)
+        if name in existing_markers:
+            marker = existing_markers[name]
+            if marker.getParentFrameName() != parent_frame:
+                marker.setParentFrame(frame)
+            marker.set_location(osim.Vec3(*location))
+        else:
+            marker = osim.Marker(name, frame, osim.Vec3(*location))
+            model.addMarker(marker)
         attached.append((name, parent_frame))
     model.finalizeConnections()
     return attached
@@ -174,7 +178,7 @@ def write_storage_file(path: Path, coord_names: list[str], pose_values: dict[str
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def read_storage_file(path: Path) -> dict[str, float]:
+def read_storage_table(path: Path) -> tuple[list[str], dict[str, float]]:
     require_existing_file(path, "pose storage file")
     lines = [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     try:
@@ -190,6 +194,11 @@ def read_storage_file(path: Path) -> dict[str, float]:
     pose_values: dict[str, float] = {}
     for name, value in zip(columns[1:], values[1:]):
         pose_values[name] = float(value)
+    return columns[1:], pose_values
+
+
+def read_storage_file(path: Path) -> dict[str, float]:
+    _, pose_values = read_storage_table(path)
     return pose_values
 
 

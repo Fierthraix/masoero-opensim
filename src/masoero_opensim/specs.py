@@ -18,3 +18,12 @@ def read_yaml(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise UserFacingError(f"Expected a mapping in {path}")
     return data
+
+
+def write_yaml(path: Path, data: dict[str, Any]) -> None:
+    yaml = import_dependency(
+        "yaml",
+        "PyYAML is required. Run `UV_CACHE_DIR=/tmp/uv-cache uv sync` first.",
+    )
+    with path.open("w", encoding="utf-8") as handle:
+        yaml.safe_dump(data, handle, sort_keys=False)

@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 from . import config
+from .editor_patch import apply_editor_patch
 from .mesh_viewer import export_pose_viewer
 from .opensim_utils import (
     add_markers,
@@ -14,6 +15,7 @@ from .opensim_utils import (
     marker_names,
     save_model,
 )
+from .pose_editor import serve_pose_editor
 from .pose_solver import default_output_paths, solve_pose
 from .rendering import render_pose
 from .reporting import compute_pose_metrics, export_body_transforms, write_json, write_metrics_json
@@ -152,9 +154,58 @@ def export_viewer_main(argv: list[str] | None = None) -> int:
     return 0
 
 
+def pose_editor_main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Launch a browser-based landmark and pose editor.")
+    parser.add_argument("pose_file", type=Path)
+    parser.add_argument("--model", type=Path, default=config.MARKER_MODEL_PATH)
+    parser.add_argument("--landmarks", type=Path, default=config.LANDMARKS_PATH)
+    parser.add_argument("--constraints", type=Path)
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--no-browser", action="store_true")
+    args = parser.parse_args(argv)
+
+    serve_pose_editor(
+        model_path=args.model,
+        pose_path=args.pose_file,
+        landmarks_path=args.landmarks,
+        constraints_path=args.constraints,
+        host=args.host,
+        port=args.port,
+        open_browser=not args.no_browser,
+    )
+    return 0
+
+
+def apply_editor_patch_main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Apply an editor patch to pose, landmarks, and marker model outputs.")
+    parser.add_argument("patch_file", type=Path)
+    parser.add_argument("--input-model", type=Path, default=config.BASE_MODEL_PATH)
+    parser.add_argument("--output-pose", type=Path)
+    parser.add_argument("--output-landmarks", type=Path)
+    parser.add_argument("--output-model", type=Path)
+    args = parser.parse_args(argv)
+
+    result = apply_editor_patch(
+        args.patch_file,
+        input_model_path=args.input_model,
+        output_pose_path=args.output_pose,
+        output_landmarks_path=args.output_landmarks,
+        output_model_path=args.output_model,
+    )
+    print(f"Wrote pose file to {result.output_pose_path}")
+    print(f"Wrote landmarks file to {result.output_landmarks_path}")
+    print(f"Wrote marker model to {result.output_model_path}")
+    print(f"Render with: python scripts/05_render_pose.py {result.output_pose_path} --model {result.output_model_path}")
+    return 0
+
+
 def run_entrypoint(entrypoint, argv: list[str] | None = None) -> int:
     try:
         return entrypoint(argv)
     except UserFacingError as exc:
         print(f"error: {exc}")
         return 1
+    except KeyboardInterrupt:
+        print("Stopped.")
+        return 130
