@@ -21,6 +21,8 @@ from .opensim_utils import (
     coordinate_units,
     load_model,
     load_opensim,
+    marker_positions,
+    normalize_parent_frame_name,
     read_storage_file,
     vector3_to_list,
 )
@@ -89,7 +91,7 @@ def _coerce_marker_edits(raw_marker_edits: Any) -> list[dict[str, Any]]:
         edits.append(
             {
                 "name": str(item["name"]),
-                "parent_frame": str(item["parent_frame"]),
+                "parent_frame": normalize_parent_frame_name(str(item["parent_frame"])),
                 "location_m": [float(value) for value in item["location_m"]],
             }
         )
@@ -103,8 +105,8 @@ def _apply_marker_edits(model: Any, pose_values: dict[str, float], marker_edits:
     frame_changed = False
     for marker_edit in marker_edits:
         marker = marker_set.get(marker_edit["name"])
-        parent_frame = marker_edit["parent_frame"]
-        if marker.getParentFrameName() != parent_frame:
+        parent_frame = normalize_parent_frame_name(marker_edit["parent_frame"])
+        if normalize_parent_frame_name(marker.getParentFrameName()) != parent_frame:
             marker.setParentFrame(body_set.get(parent_frame))
             frame_changed = True
     if frame_changed:
@@ -167,19 +169,21 @@ def build_editor_scene(
             }
         )
 
-    marker_set = model.getMarkerSet()
     landmark_spec = read_yaml(landmarks_path)
+    editable_marker_names = {str(marker_spec["name"]) for marker_spec in landmark_spec.get("markers", [])}
+    marker_set = model.getMarkerSet()
     markers: list[dict[str, Any]] = []
-    for marker_spec in landmark_spec.get("markers", []):
-        marker = marker_set.get(marker_spec["name"])
-        markers.append(
-            {
-                "name": marker.getName(),
-                "parent_frame": marker.getParentFrameName(),
-                "location_m": _round_list(vector3_to_list(marker.get_location())),
-                "world_position": _round_list(vector3_to_list(marker.getLocationInGround(state))),
-            }
-        )
+    for name, position in sorted(marker_positions(model, state).items()):
+        marker = marker_set.get(name)
+        marker_data = {
+            "name": name,
+            "world_position": _round_list(position),
+            "editable": name in editable_marker_names,
+        }
+        if name in editable_marker_names:
+            marker_data["parent_frame"] = normalize_parent_frame_name(marker.getParentFrameName())
+            marker_data["location_m"] = _round_list(vector3_to_list(marker.get_location()))
+        markers.append(marker_data)
 
     constraints = read_yaml(constraints_path or _guess_constraints_path(pose_path))
     coordinates: list[dict[str, Any]] = []
@@ -462,6 +466,7 @@ def _editor_html(payload: dict[str, Any]) -> str:
           <button id="pose-mode">Pose</button>
         </div>
         <div class="actions">
+          <button id="toggle-visibility">Focus Editable</button>
           <button id="center-view">Center View</button>
           <button id="reset-edits">Reset Edits</button>
           <button id="export-patch" class="primary">Export Patch</button>
@@ -472,7 +477,7 @@ def _editor_html(payload: dict[str, Any]) -> str:
           <h2>Landmarks</h2>
           <span id="marker-count"></span>
         </div>
-        <p>Click a marker in the mesh or list, then drag the local-axis gizmo or type exact body-frame XYZ values.</p>
+        <p>All model markers are shown in the scene. Only the Masoero landmark subset is listed here and can be edited.</p>
         <div class="marker-list" id="marker-list"></div>
         <div id="selected-marker-empty">No marker selected.</div>
         <div id="selected-marker-panel" class="hidden">
@@ -548,11 +553,20 @@ def _editor_html(payload: dict[str, Any]) -> str:
     scene.add(rootGroup);
 
     const markerGeometry = new THREE.SphereGeometry(0.011, 18, 18);
+    const referenceMarkerGeometry = new THREE.SphereGeometry(0.007, 14, 14);
     const markerMaterial = new THREE.MeshStandardMaterial({{
       color: 0xc36a2d,
       emissive: 0x67351a,
       emissiveIntensity: 0.15,
       roughness: 0.48
+    }});
+    const referenceMarkerMaterial = new THREE.MeshStandardMaterial({{
+      color: 0x8b8170,
+      emissive: 0x3f382d,
+      emissiveIntensity: 0.08,
+      roughness: 0.62,
+      transparent: true,
+      opacity: 0.72
     }});
     const markerSelectedMaterial = new THREE.MeshStandardMaterial({{
       color: 0x214f8f,
@@ -587,6 +601,7 @@ def _editor_html(payload: dict[str, Any]) -> str:
     let selectedMarkerName = null;
     let poseEdits = {{}};
     let markerEdits = {{}};
+    let focusEditable = false;
     let previewTimer = null;
     let previewToken = 0;
 
@@ -604,6 +619,7 @@ def _editor_html(payload: dict[str, Any]) -> str:
     const markerXEl = document.getElementById("marker-x");
     const markerYEl = document.getElementById("marker-y");
     const markerZEl = document.getElementById("marker-z");
+    const toggleVisibilityEl = document.getElementById("toggle-visibility");
 
     function setStatus(text) {{
       statusEl.textContent = text;
@@ -637,6 +653,28 @@ def _editor_html(payload: dict[str, Any]) -> str:
 
     function findMarker(name) {{
       return currentScene.markers.find((marker) => marker.name === name) || null;
+    }}
+
+    function applyMarkerVisibility() {{
+      markerObjects.forEach((mesh, markerName) => {{
+        const marker = findMarker(markerName);
+        if (!marker) {{
+          return;
+        }}
+        if (marker.editable) {{
+          mesh.visible = true;
+          return;
+        }}
+        mesh.visible = !focusEditable;
+      }});
+      meshGroup.children.forEach((mesh) => {{
+        const focused = focusEditable && mode === "landmarks";
+        mesh.material.transparent = focused;
+        mesh.material.opacity = focused ? 0.42 : 1.0;
+        mesh.material.depthWrite = !focused;
+      }});
+      toggleVisibilityEl.classList.toggle("active", focusEditable);
+      toggleVisibilityEl.textContent = focusEditable ? "Show All Markers" : "Focus Editable";
     }}
 
     function effectiveMarkerState(name) {{
@@ -691,6 +729,11 @@ def _editor_html(payload: dict[str, Any]) -> str:
     function setSelectedMarker(name) {{
       selectedMarkerName = name;
       markerObjects.forEach((mesh, markerName) => {{
+        const marker = findMarker(markerName);
+        if (!marker || !marker.editable) {{
+          mesh.material = referenceMarkerMaterial;
+          return;
+        }}
         mesh.material = markerName === selectedMarkerName ? markerSelectedMaterial : markerMaterial;
       }});
       [...markerListEl.querySelectorAll(".marker-item")].forEach((button) => {{
@@ -698,12 +741,14 @@ def _editor_html(payload: dict[str, Any]) -> str:
       }});
       updateSelectedMarkerPanel();
       attachTransformToSelection();
+      applyMarkerVisibility();
     }}
 
     function buildMarkerList() {{
       markerListEl.innerHTML = "";
-      markerCountEl.textContent = `${{currentScene.markers.length}} points`;
-      for (const marker of currentScene.markers) {{
+      const editableMarkers = currentScene.markers.filter((marker) => marker.editable);
+      markerCountEl.textContent = `${{editableMarkers.length}} editable / ${{currentScene.markers.length}} total`;
+      for (const marker of editableMarkers) {{
         const button = document.createElement("button");
         button.type = "button";
         button.className = "marker-item";
@@ -828,14 +873,16 @@ def _editor_html(payload: dict[str, Any]) -> str:
         meshGroup.add(mesh);
       }}
       for (const marker of currentScene.markers) {{
-        const dot = new THREE.Mesh(markerGeometry, markerMaterial);
+        const dot = new THREE.Mesh(marker.editable ? markerGeometry : referenceMarkerGeometry, marker.editable ? markerMaterial : referenceMarkerMaterial);
         dot.position.set(...marker.world_position);
         dot.userData.markerName = marker.name;
+        dot.userData.editable = marker.editable;
         markerGroup.add(dot);
         markerObjects.set(marker.name, dot);
       }}
       frameScene();
       setSelectedMarker(selectedMarkerName);
+      applyMarkerVisibility();
     }}
 
     function resize() {{
@@ -918,6 +965,7 @@ def _editor_html(payload: dict[str, Any]) -> str:
       document.getElementById("pose-mode").classList.toggle("active", mode === "pose");
       landmarkPanelEl.classList.toggle("hidden", mode !== "landmarks");
       posePanelEl.classList.toggle("hidden", mode !== "pose");
+      applyMarkerVisibility();
       attachTransformToSelection();
     }}
 
@@ -955,7 +1003,7 @@ def _editor_html(payload: dict[str, Any]) -> str:
       const intersects = raycaster.intersectObjects([...markerObjects.values()], false);
       if (intersects.length > 0) {{
         const markerName = intersects[0].object.userData.markerName;
-        if (markerName) {{
+        if (markerName && intersects[0].object.userData.editable) {{
           setSelectedMarker(markerName);
         }}
       }}
@@ -963,6 +1011,11 @@ def _editor_html(payload: dict[str, Any]) -> str:
 
     document.getElementById("landmark-mode").addEventListener("click", () => setMode("landmarks"));
     document.getElementById("pose-mode").addEventListener("click", () => setMode("pose"));
+    toggleVisibilityEl.addEventListener("click", () => {{
+      focusEditable = !focusEditable;
+      applyMarkerVisibility();
+      setStatus(focusEditable ? "Showing editable landmarks only." : "Showing all model markers.");
+    }});
     document.getElementById("center-view").addEventListener("click", () => {{
       frameScene();
       setStatus("View centered.");

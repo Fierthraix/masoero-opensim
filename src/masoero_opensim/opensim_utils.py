@@ -54,6 +54,15 @@ def vector3_to_list(vec: Any) -> list[float]:
     return [float(vec[index]) for index in range(3)]
 
 
+def normalize_parent_frame_name(name: str) -> str:
+    normalized = str(name).strip()
+    if normalized.startswith("/bodyset/"):
+        normalized = normalized[len("/bodyset/") :]
+    if "/" in normalized:
+        normalized = normalized.rsplit("/", 1)[-1]
+    return normalized
+
+
 def load_model(model_path: Path):
     require_existing_file(model_path, "OpenSim model")
     osim = load_opensim()
@@ -131,12 +140,12 @@ def add_markers(model: Any, marker_specs: list[dict[str, Any]]) -> list[tuple[st
     existing_markers = {model.getMarkerSet().get(index).getName(): model.getMarkerSet().get(index) for index in range(model.getMarkerSet().getSize())}
     for marker_spec in marker_specs:
         name = marker_spec["name"]
-        parent_frame = marker_spec["parent_frame"]
+        parent_frame = normalize_parent_frame_name(marker_spec["parent_frame"])
         location = marker_spec["location_m"]
         frame = body_set.get(parent_frame)
         if name in existing_markers:
             marker = existing_markers[name]
-            if marker.getParentFrameName() != parent_frame:
+            if normalize_parent_frame_name(marker.getParentFrameName()) != parent_frame:
                 marker.setParentFrame(frame)
             marker.set_location(osim.Vec3(*location))
         else:

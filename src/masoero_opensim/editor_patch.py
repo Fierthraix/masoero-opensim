@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from . import config
-from .opensim_utils import add_markers, load_model, read_storage_table, save_model, write_storage_file
+from .opensim_utils import add_markers, load_model, normalize_parent_frame_name, read_storage_table, save_model, write_storage_file
 from .runtime import UserFacingError, ensure_parent_dir
 from .specs import read_yaml, write_yaml
 
@@ -26,7 +26,7 @@ def _marker_edits_by_name(marker_edits: list[dict[str, Any]]) -> dict[str, dict[
         name = str(marker_edit["name"])
         edits[name] = {
             "name": name,
-            "parent_frame": str(marker_edit["parent_frame"]),
+            "parent_frame": normalize_parent_frame_name(str(marker_edit["parent_frame"])),
             "location_m": [float(value) for value in marker_edit["location_m"]],
         }
     return edits
@@ -50,7 +50,7 @@ def build_editor_patch(
         "marker_edits": [
             {
                 "name": str(marker_edit["name"]),
-                "parent_frame": str(marker_edit["parent_frame"]),
+                "parent_frame": normalize_parent_frame_name(str(marker_edit["parent_frame"])),
                 "location_m": [float(value) for value in marker_edit["location_m"]],
             }
             for marker_edit in marker_edits
@@ -120,7 +120,7 @@ def apply_editor_patch(
             updated_markers.append(
                 {
                     "name": name,
-                    "parent_frame": str(marker_spec["parent_frame"]),
+                    "parent_frame": normalize_parent_frame_name(str(marker_spec["parent_frame"])),
                     "location_m": [float(value) for value in marker_spec["location_m"]],
                 }
             )
